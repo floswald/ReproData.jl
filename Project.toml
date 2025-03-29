@@ -3,7 +3,19 @@ uuid = "2757c80a-47b8-4cfb-856d-d5fdc2631c01"
 authors = ["Florian Oswald <florian.oswald@gmail.com> and contributors"]
 version = "1.11.0"
 
+[deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
 [compat]
+CSV = "0.10.15"
+CategoricalArrays = "0.10.8"
+DataFrames = "1.7.0"
+Random = "1.11.0"
+Revise = "3.7.3"
 julia = "1.6.7"
 
 [extras]

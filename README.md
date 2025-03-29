@@ -1,3 +1,6 @@
 # ReproData
 
 [![Build Status](https://github.com/floswald/ReproData.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/floswald/ReproData.jl/actions/workflows/CI.yml?query=branch%3Amain)
+
+
+Builds data for Reproducibility exercise. Data available for download from zenodo [here].
