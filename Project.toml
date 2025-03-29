@@ -1,0 +1,13 @@
+name = "ReproData"
+uuid = "2757c80a-47b8-4cfb-856d-d5fdc2631c01"
+authors = ["Florian Oswald <florian.oswald@gmail.com> and contributors"]
+version = "1.11.0"
+
+[compat]
+julia = "1.6.7"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
