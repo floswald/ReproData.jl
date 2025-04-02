@@ -83,12 +83,11 @@ module ReproData
         1. Download some data from a public repository and record the citation record. 📚
         2. Use Stata to perform statistical analysis
         3. Use R to perform some more analysys
-        4. Use `julia` to perform even more 🤪
-        5. Collect all results and write into a paper.
+        4. Collect all results and write into a paper.
 
         ## Outline of Analysis
 
-        We want to run a two fixed effects regression in all three programming languages. We will build a table of results from each, and record the time it took to run the analysis. Along the way, we will take care to carefully record all info to reproduce our computational environment.
+        We want to run a two fixed effects regression in all two programming languages. We will build a table of results from each, and record the time it took to run the analysis. Along the way, we will take care to carefully record all info to reproduce our computational environment.
 
         """
         )
@@ -99,139 +98,160 @@ module ReproData
     end
 
 
-    function workshop()
+    function workshop(; step = 10)
 
-        # 	* create a folder structure: data, code, output, paper
-        createtree()
+        if step >= 1
+            # 	* create a folder structure: data, code, output, paper
+            createtree()
 
-        # * create a new readme.md at root of this
-        new_readme()
+            # * create a new readme.md at root of this
+            new_readme()
 
-        #     * download example data from zenodo
-        # get_packages(root())
+            #     * download example data from zenodo
+            # get_packages(root())
 
-        # write citation into readme
-        append_readme("""
+            # write citation into readme
+            append_readme("""
 
-        ## Data Citation
+            ## Data Citation
 
-        Oswald, F. (2025). Data for Reproducibility Exercise [Data set]. Zenodo. https://zenodo.org/records/15124721
+            Oswald, F. (2025). Data for Reproducibility Exercise [Data set]. Zenodo. https://zenodo.org/records/15124721
 
-        Here is a bibtex entry:
+            Here is a bibtex entry:
 
-        ```
-        @dataset{oswald_2025_15124721,
-        author       = {Oswald, Florian},
-        title        = {Data for Reproducibility Exercise},
-        month        = apr,
-        year         = 2025,
-        publisher    = {Zenodo},
-        doi          = {10.5281/zenodo.15124721},
-        url          = {https://doi.org/10.5281/zenodo.15124721},
-        }
-        ```
-        """)
+            ```
+            @dataset{oswald_2025_15124721,
+            author       = {Oswald, Florian},
+            title        = {Data for Reproducibility Exercise},
+            month        = apr,
+            year         = 2025,
+            publisher    = {Zenodo},
+            doi          = {10.5281/zenodo.15124721},
+            url          = {https://doi.org/10.5281/zenodo.15124721},
+            }
+            ```
+            """)
 
-        # set to read only
-        chmod(joinpath(root(),"data","raw"), 0o555, recursive = true)
+            # set data to read only
+            chmod(joinpath(root(),"data","raw"), 0o555, recursive = true)
 
-        # make a folder for do files
-        mkpath(joinpath(root(),"code","stata","do"))
+        elseif step >= 2
 
-        #     * create a run.do file, setting up a config.do as well.
-        stata_write_run()
-        stata_write_config()
-        stata_write_install()
-        stata_write_read()
-        stata_write_reghdf()
+            # make a folder for do files
+            mkpath(joinpath(root(),"code","stata","do"))
 
-        @info "executing stata"
-        runstata()
+            #     * create a run.do file, setting up a config.do as well.
+            stata_write_run()
+            stata_write_config()
+            stata_write_install()
 
-        append_readme("""
+        elseif step >= 3
 
-        ## Stata Package Versions
+            # create stata pipeline
+            stata_write_read()
+            stata_write_reghdf()
 
-        ```
-        +--------------------------------+
-        | number    package         date |
-        |--------------------------------|
-        |    [6]     ftools   1 Apr 2025 |
-        |    [7]      mypkg   1 Apr 2025 |
-        |    [1]    reghdfe   1 Apr 2025 |
-        |    [2]    regsave   1 Apr 2025 |
-        |    [5]    rscript   1 Apr 2025 |
-        |--------------------------------|
-        |    [3]   st0085_2   1 Apr 2025 |
-        |    [4]    texsave   1 Apr 2025 |
-        +--------------------------------+
+            @info "executing stata"
+            runstata()
 
-        +-------------------------------------
-        Date and time:  1 Apr 2025 16:43:09
-        Stata version: 18.5
-        Updated as of: 22 May 2024
-        Variant:       MP
-        Processors:    2
-        OS:            Unix 
-        Machine type:  Mac (Apple Silicon)
-        Shell:         /opt/homebrew/bin/fish
-        +-------------------------------------
-        ```
-        """)
+        elseif step >= 4
 
-        append_readme("""
-        
-        ## Input and Output
+            append_readme("""
 
-        | Paper Object |  File name |  function |
-        | ------------ |  --------- |  -------- |
-        | Table 1 |  `output/tables/statareg1.tex` |  `code/stata/do/2_regression.do` |
+            ## Stata Package Versions
 
-        """)
+            ```
+            +--------------------------------+
+            | number    package         date |
+            |--------------------------------|
+            |    [6]     ftools   1 Apr 2025 |
+            |    [7]      mypkg   1 Apr 2025 |
+            |    [1]    reghdfe   1 Apr 2025 |
+            |    [2]    regsave   1 Apr 2025 |
+            |    [5]    rscript   1 Apr 2025 |
+            |--------------------------------|
+            |    [3]   st0085_2   1 Apr 2025 |
+            |    [4]    texsave   1 Apr 2025 |
+            +--------------------------------+
 
-        write_paper()
+            +-------------------------------------
+            Date and time:  1 Apr 2025 16:43:09
+            Stata version: 18.5
+            Updated as of: 22 May 2024
+            Variant:       MP
+            Processors:    2
+            OS:            Unix 
+            Machine type:  Mac (Apple Silicon)
+            Shell:         /opt/homebrew/bin/fish
+            +-------------------------------------
+            ```
+            """)
 
-        # compile paper
-        Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
+            append_readme("""
+            
+            ## Input and Output
 
-        # delete output
-        # rm(joinpath(root(),"output"),recursive = true, force = true)
+            | Paper Object |  File name |  function |
+            | ------------ |  --------- |  -------- |
+            | Table 1 |  `output/tables/statareg1.tex` |  `code/stata/do/2_regression.do` |
 
-        # run stata again
-        # runstata()
-        # Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
+            """)
 
-        # append run time to readme
-        append_readme("""
-        ## Stata Runtime
+        elseif step >= 5
 
-        0.02 minutes
-        """
-        )
+            write_paper()
 
-        # Add code/R
-        mkpath(joinpath(root(),"code","R"))
+            # compile paper
+            Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
 
-        r_write()
-        Base.run(`Rscript $(joinpath(root(),"code","R","script.R"))`)
+            # delete output
+            # rm(joinpath(root(),"output"),recursive = true, force = true)
 
-        write_paper2()
-        # rm_latex_aux()
-        # compile paper
-        # Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
+            # run stata again
+            # runstata()
+            # Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
 
-        # add renv to R project
-        r_writeenv()
-        Base.run(`Rscript $(joinpath(root(),"code","R","script.R"))`)
+            # append run time to readme
+            append_readme("""
+            ## Stata Runtime
 
-        write_paper3()
-        # rm_latex_aux()
+            0.02 minutes
+            """
+            )
 
+        elseif step >= 6
 
-        # Add R package citations to readme
-        cites = join(readlines(joinpath(root(), "grateful-report.md")), "\n")
+            # Add code/R
+            mkpath(joinpath(root(),"code","R"))
 
-        append_readme(cites)
+            r_write()
+            Base.run(`Rscript $(joinpath(root(),"code","R","script.R"))`)
+
+        elseif step >= 7
+
+            write_paper2()
+            rm_latex_aux()
+            # compile paper
+            Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
+
+        elseif step >= 8
+
+            # add renv to R project
+            r_writeenv()
+            Base.run(`Rscript $(joinpath(root(),"code","R","script.R"))`)
+
+            write_paper3()
+            rm_latex_aux()
+            Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
+
+        elseif step >= 9
+ 
+            # Add R package citations to readme
+           cites = join(readlines(joinpath(root(), "grateful-report.md")), "\n")
+
+            append_readme(cites)
+
+        end
 
 
         @info "project built"
