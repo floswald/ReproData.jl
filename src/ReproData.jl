@@ -216,6 +216,7 @@ module ReproData
         Base.run(`Rscript $(joinpath(root(),"code","R","script.R"))`)
 
         write_paper2()
+        # rm_latex_aux()
         # compile paper
         # Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
 
@@ -224,6 +225,7 @@ module ReproData
         Base.run(`Rscript $(joinpath(root(),"code","R","script.R"))`)
 
         write_paper3()
+        # rm_latex_aux()
 
 
         # Add R package citations to readme

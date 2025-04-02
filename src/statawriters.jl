@@ -21,7 +21,7 @@ function stata_write_run()
         global subset = 0
 
         * rebuild data? 1 = yes
-        global rebuild = 0
+        global rebuild = 1
 
         * Configure Stata's library environment and record system parameters
         do "\$stataroot/do/_config.do"
