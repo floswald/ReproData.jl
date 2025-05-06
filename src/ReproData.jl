@@ -267,28 +267,24 @@ module ReproData
 
             Both tables below are generated in our `_config.do` file.
 
-            > output of `mypkg` command
+            > output of `mypkg` command collected from `run.log`
 
             ```
             +--------------------------------+
             | number    package         date |
             |--------------------------------|
-            |    [6]     ftools   1 Apr 2025 |
-            |    [7]      mypkg   1 Apr 2025 |
-            |    [1]    reghdfe   1 Apr 2025 |
-            |    [2]    regsave   1 Apr 2025 |
-            |    [5]    rscript   1 Apr 2025 |
-            |--------------------------------|
-            |    [3]   st0085_2   1 Apr 2025 |
-            |    [4]    texsave   1 Apr 2025 |
+            |    [2]     ftools   6 May 2025 |
+            |    [3]      mypkg   6 May 2025 |
+            |    [1]    reghdfe   6 May 2025 |
+            |    [4]   st0085_2   6 May 2025 |
             +--------------------------------+
             ```
 
             > output of `_print_timestamp` command
 
             ```
-            +-------------------------------------
-            Date and time:  1 Apr 2025 16:43:09
+            -----------------------------------
+            Date and time:  6 May 2025 21:10:49
             Stata version: 18.5
             Updated as of: 22 May 2024
             Variant:       MP
@@ -296,7 +292,7 @@ module ReproData
             OS:            Unix 
             Machine type:  Mac (Apple Silicon)
             Shell:         /opt/homebrew/bin/fish
-            +-------------------------------------
+            -------------------------------------
             ```
             """)
 
@@ -332,7 +328,7 @@ module ReproData
             append_readme("""
             ## Stata Runtime
 
-            0.02 minutes
+            0.2 minutes
             """
             )
             if git 
