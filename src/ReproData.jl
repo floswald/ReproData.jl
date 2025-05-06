@@ -15,7 +15,7 @@ module ReproData
         FEbenchmark(;N=10_000_000,K= 100)
 
     A function to create a 2-way fixed effect dataset. `N` observations, `K` 
-    and `N/K` categories for Fixed effects respectively. We generate 7 regressors as well as a weight vector.
+    and `N/K` categories for Fixed effects respectively. We generate 7 regressors.
     """
     function FEbenchmark(;N=10_000_000,K= 100)
         @info "creating $(fld(N,K)) groups for id1"
@@ -52,12 +52,49 @@ module ReproData
     end
 
     # building project functions
-    root() = "/Users/floswald/git/ReproWorkshop"
+    root() = get(ENV,"REPRO_ROOT","/Users/floswald/git/ReproWorkshop")
 
     subdirs() = ["output","paper","code","data"]
-    wipe() = map(x -> rm(joinpath(root(),x), recursive = true, force = true), subdirs() )
-    function createtree()
+    function wipe(; rawdata = true, git = true)
+        decision = Base.prompt("This will delete all. Good? Y / N ") in ("y","Y") ? "Y" : "N" 
+        if decision == "Y"
+            if rawdata && git
+                @info "deleting all"
+                if isdir(joinpath(root(),"data","raw"))
+                    chmod(joinpath(root(),"data","raw"), 0o777, recursive = true)
+                    rm(joinpath(root(),"data","raw"), recursive = true, force = true)
+                end
+                rm(root(), recursive = true, force = true)
+            elseif rawdata && !git
+                @info "deleting all but git"
+                rm(joinpath(root(),"README.md"),force = true)
+                rm(joinpath(root(),"data"), recursive = true, force = true)
+                rm(joinpath(root(),"output"), recursive = true, force = true)
+                rm(joinpath(root(),"paper"), recursive = true, force = true)
+                rm(joinpath(root(),"code"), recursive = true, force = true)
+            elseif !rawdata && git
+                @info "deleting all but raw data"
+                rm(joinpath(root(),"README.md"),force = true)
+                rm(joinpath(root(),"data","processed"), recursive = true, force = true)
+                rm(joinpath(root(),"output"), recursive = true, force = true)
+                rm(joinpath(root(),"paper"), recursive = true, force = true)
+                rm(joinpath(root(),"code"), recursive = true, force = true)
+                rm(joinpath(root(),".git"), recursive = true, force = true)
+            else
+                @info "not deleting anything"
+            end
+            
+        else
+            @info "not deleting anything"
+        end
+    end
+
+    function createtree(;dataloc = "/Users/floswald/Downloads/data.csv")
         map(x -> mkpath(joinpath(root(),x)), subdirs())
+        map(x -> touch(joinpath(root(),x,".keep")), subdirs())
+        mkpath(joinpath(root(),"data","raw"))
+        touch(joinpath(root(),"data","raw",".keep"))
+        cp(dataloc, joinpath(root(),"data","raw","data.csv"),force = true)
     end
     
     
@@ -78,6 +115,8 @@ module ReproData
         write(io,"""
         # My Reproducible Research Project
 
+        > Caution: this is not meant to be an exhaustive example or indeed a template of a valid README file for your package. Please refer to [this link](https://social-science-data-editors.github.io/template_README/) for such a template. This readme here will be built up during our workshop, where we want to point out some selected aspects of the whole process.
+
         We are building a reproducible research project. We will 
 
         1. Download some data from a public repository and record the citation record. 📚
@@ -97,15 +136,66 @@ module ReproData
         write(io,s)
     end
 
+    function workshop(; with_git = false)
+        wipe(rawdata = true, git = true)
+        for s in 1:10
+            workshopstep(step = s, git = with_git)
+        end
+    end
 
-    function workshop(; step = 10)
+    function gitter(st,dir,message)
+        Base.run(Cmd(`git add "$(join(dir))"`, dir = root())) 
+        Base.run(Cmd(`git commit -m "$message"`, dir = root())) 
+        Base.run(Cmd(`git tag -a step$st -m "tagging step $st"`, dir = root())) 
+    end
+    function gitter(st,dir1,dir2,message)
+        Base.run(Cmd(`git add "$dir1"`, dir = root())) 
+        Base.run(Cmd(`git add "$dir2"`, dir = root())) 
+        Base.run(Cmd(`git commit -m "$message"`, dir = root())) 
+        Base.run(Cmd(`git tag -a step$st -m "tagging step $st"`, dir = root())) 
+    end
+    function gitter(st,dir1,dir2,dir3,message)
+        Base.run(Cmd(`git add "$dir1"`, dir = root())) 
+        Base.run(Cmd(`git add "$dir2"`, dir = root())) 
+        Base.run(Cmd(`git add "$dir3"`, dir = root())) 
+        Base.run(Cmd(`git commit -m "$message"`, dir = root())) 
+        Base.run(Cmd(`git tag -a step$st -m "tagging step $st"`, dir = root())) 
+    end
 
-        if step >= 1
+
+    function workshopstep(; step = 1, git = false)
+
+        if step == 1
+
+
+
+            @info "step 1"
             # 	* create a folder structure: data, code, output, paper
             createtree()
+            #initialize a git repo at root()
+            if git 
+                Base.run(Cmd(`git init`, dir = root())) 
+                open(joinpath(root(),".gitignore"),"w") do io 
+                    write(io,
+                    """
+                    data/processed/*.dta
+                    data/raw/data.csv
+                    paper/*.aux
+                    paper/*.log
+                    paper/*.out
+                    paper/*.fdb_latexmk
+                    paper/*.fls
+                    """
+                    )
+                end
+            end
 
             # * create a new readme.md at root of this
             new_readme()
+
+            if git 
+                gitter("1a",".", "create project structure")
+            end
 
             #     * download example data from zenodo
             # get_packages(root())
@@ -133,9 +223,15 @@ module ReproData
             """)
 
             # set data to read only
-            chmod(joinpath(root(),"data","raw"), 0o555, recursive = true)
+            chmod(joinpath(root(),"data","raw","data.csv"), 0o555, recursive = true)
 
-        elseif step >= 2
+            if git 
+                gitter("1b",".", "cite data and set read only")
+            end
+        end
+
+        if step == 2
+            @info "step 2"
 
             # make a folder for do files
             mkpath(joinpath(root(),"code","stata","do"))
@@ -144,21 +240,34 @@ module ReproData
             stata_write_run()
             stata_write_config()
             stata_write_install()
+            if git 
+                gitter(step,".", "stata setup")
+            end
+        end
 
-        elseif step >= 3
-
+        if step == 3
+            @info "step 3"
             # create stata pipeline
             stata_write_read()
             stata_write_reghdf()
 
             @info "executing stata"
             runstata()
+            if git 
+                gitter(step,"code/stata","output", "stata code and interm data")
+            end
 
-        elseif step >= 4
+        end
 
+        if step == 4
+            @info "step 4"
             append_readme("""
 
             ## Stata Package Versions
+
+            Both tables below are generated in our `_config.do` file.
+
+            > output of `mypkg` command
 
             ```
             +--------------------------------+
@@ -173,7 +282,11 @@ module ReproData
             |    [3]   st0085_2   1 Apr 2025 |
             |    [4]    texsave   1 Apr 2025 |
             +--------------------------------+
+            ```
 
+            > output of `_print_timestamp` command
+
+            ```
             +-------------------------------------
             Date and time:  1 Apr 2025 16:43:09
             Stata version: 18.5
@@ -196,13 +309,17 @@ module ReproData
             | Table 1 |  `output/tables/statareg1.tex` |  `code/stata/do/2_regression.do` |
 
             """)
+            if git 
+                gitter(step,"README.md", "update readme")
+            end
+        end
 
-        elseif step >= 5
-
+        if step == 5
+            @info "step 5"
             write_paper()
 
             # compile paper
-            Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
+            # Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
 
             # delete output
             # rm(joinpath(root(),"output"),recursive = true, force = true)
@@ -218,45 +335,86 @@ module ReproData
             0.02 minutes
             """
             )
+            if git 
+                gitter(step,"paper/main.tex","README.md","wrote paper")
+            end
+        end
 
-        elseif step >= 6
+        if step == 6
+            @info "step 6"
 
             # Add code/R
             mkpath(joinpath(root(),"code","R"))
 
             r_write()
             Base.run(`Rscript $(joinpath(root(),"code","R","script.R"))`)
+            if git 
+                gitter(step,"code/R","output", "added R code")
+            end
+        end
 
-        elseif step >= 7
+        if step == 7
+            @info "step 7"
 
             write_paper2()
             rm_latex_aux()
             # compile paper
-            Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
+            # Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
 
-        elseif step >= 8
+            if git 
+                gitter(step,"paper/main.tex", "updated paper")
+            end
+        end
+
+        if step == 8
+            @info "step 8"
 
             # add renv to R project
             r_writeenv()
             Base.run(`Rscript $(joinpath(root(),"code","R","script.R"))`)
 
             write_paper3()
-            rm_latex_aux()
-            Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
+            # rm_latex_aux()
+            # Base.run(Cmd(`latexmk main.tex`, dir = joinpath(root(),"paper")))
+            if git 
+                gitter(step,"code/R", "paper/main.tex", "output", "added renv and updated paper")
+            end
+        end
 
-        elseif step >= 9
- 
+        if step == 9
+            @info "step 9"
+
             # Add R package citations to readme
-           cites = join(readlines(joinpath(root(), "grateful-report.md")), "\n")
+            cites = join(readlines(joinpath(root(), "paper","grateful-report.md")), "\n")
 
             append_readme(cites)
 
+            # compile paper
+            Base.run(Cmd(`latexmk -pdf -f main.tex`, dir = joinpath(root(),"paper")))
+
+
+            if git 
+                gitter(step,"README.md","paper/grateful-report.md", "paper/main.pdf", "compiled pdf paper and added R package citations")
+
+                # now checkout first tag again and remove all files with appear untracked
+                Base.run(Cmd(`git checkout step1a`, dir = root()))
+                Base.run(Cmd(`rm -r data/processed`, dir = root()))
+                foreach(nothidden(readdir(joinpath(ReproData.root(), "code"), join=true))) do filename
+                    rm(filename, recursive=true, force=true)
+                end
+                foreach(nothidden(readdir(joinpath(ReproData.root(), "paper"), join=true))) do filename
+                    rm(filename, recursive=true, force=true)
+                end
+                foreach(nothidden(readdir(joinpath(ReproData.root(), "output"), join=true))) do filename
+                    rm(filename, recursive=true, force=true)
+                end
+                rm(joinpath(root(),"run.log"),force = true,recursive = true)
+            end
         end
-
-
-        @info "project built"
     end
 
-    runstata() = Base.run(`stata-mp -b -e $(joinpath(root(),"code","stata","run.do"))`)
+    runstata() = Base.run(Cmd(`stata-mp -b -e $(joinpath(root(),"code","stata","run.do"))`, dir = root()))
+
+    nothidden(y) = filter(x -> !endswith(x,".keep"), y)
 
 end  # module

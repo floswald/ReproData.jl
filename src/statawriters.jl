@@ -6,7 +6,6 @@ function stata_write_run()
 
         global root "$(root())"
         global stataroot "\$root/code/stata"
-        local ProjectDir "\$stataroot"
 
         cap assert !mi("\$stataroot")
         if _rc {
@@ -15,7 +14,7 @@ function stata_write_run()
         }
 
         * Re-install stata libraries into this project? 1 = yes
-        global install = 0
+        global install = 1
 
         * run analysis on smaller sample? 1 = yes
         global subset = 0
